@@ -1,8 +1,9 @@
 const dotenv = require("dotenv");
 const http = require("http");
 const mongoose = require("mongoose");
-const headers = require('./helper/headers');
-const Post = require('./models/Post');
+const Post = require("./models/Post");
+const handleError = require("./helper/handleError");
+const handleSuccess = require("./helper/handleSuccess");
 
 dotenv.config({ path: "./.env.local" });
 
@@ -25,12 +26,7 @@ const requestListener = async (req, res) => {
     /* 取得所有貼文 */
     if ((req.url === "/posts") && (req.method === 'GET')) {
         const posts = await Post.find();
-        res.writeHead(200, headers);
-        res.write(JSON.stringify({
-            "status": "success",
-            posts
-        }));
-        res.end();
+        handleSuccess(res, { posts: posts });
 
     } else if ((req.url === "/posts") && (req.method === 'POST')) {
         /* 新增貼文 */
@@ -46,64 +42,35 @@ const requestListener = async (req, res) => {
                         content: data.content,
                         image: data.image,
                     });
-                    res.writeHead(200, headers);
-                    res.write(JSON.stringify({
-                        "status": "success",
-                        post: newPost
-                    }));
+                    handleSuccess(res, { posts: newPost });
                 } else {
-                    res.writeHead(400, headers);
-                    res.write(JSON.stringify({
-                        "status": "failed",
-                        "message": "用戶名稱或貼文內容未填寫",
-                    }));
+                    handleError(res, { message: "用戶名稱或貼文內容未填寫" });
                 }
             } catch (error) {
-                console.error(error);
-                res.writeHead(400, headers);
-                res.write(JSON.stringify({
-                    "status": "failed",
-                    "message": "新增失敗",
-                    "error": error
-                }));
-            } finally {
-                res.end();
+                handleError(res, {
+                    message: "新增失敗", 
+                    error: error
+                });
             }
         });
 
     } else if ((req.url === "/posts") && (req.method === 'DELETE')) {
         /* 刪除所有貼文 */
         const posts = await Post.deleteMany({});
-        res.writeHead(200, headers);
-        res.write(JSON.stringify({
-            "status": "success",
-            "data": posts
-        }));
-        res.end();
+        handleSuccess(res, { posts: posts });
 
     } else if ((req.url.startsWith('/posts')) && (req.method === 'DELETE')) {
-        console.log('req.url', req.url);
         /* 刪除單筆貼文 /posts/{id} */
         try {
             const id = req.url.split('/').pop();
             const deletePost = await Post.findByIdAndDelete(id); 
-
-            res.writeHead(200, headers);
-            res.write(JSON.stringify({
-            "status": "success",
-            "data": deletePost
-        }));
+            handleSuccess(res, { posts: deletePost });
         } catch (error) {
-            console.error(error);
-            res.writeHead(400, headers);
-            res.write(JSON.stringify({
-                "status": "failed",
-                "message": "刪除失敗，此 ID 資料不存在",
-                "error": error
-            }));
-        } finally {
-            res.end();
-        };
+            handleError(res, {
+                message: "刪除失敗，此 ID 資料不存在",
+                error: error
+            });
+        }
     } else if ((req.url.startsWith('/posts')) && (req.method === 'PATCH')) {
         /* 更新單筆資料 */
         req.on("end", async () => {
@@ -113,21 +80,13 @@ const requestListener = async (req, res) => {
                 const id = req.url.split('/').pop();
                 // TODO 更新資料防呆
                 const updatePost = await Post.findByIdAndUpdate(id, data);
-                res.writeHead(200, headers);
-                res.write(JSON.stringify({
-                    "status": "success",
-                    "data": updatePost
-                }));
+                handleSuccess(res, { posts: updatePost });
+            
             } catch (error) {
-                console.error(error);
-                res.writeHead(400, headers);
-                res.write(JSON.stringify({
-                    "status": "failed",
-                    "message": "更新失敗，此 ID 資料不存在，或未填寫更新欄位",
-                    "error": error
-                }));
-            } finally {
-                res.end();
+                handleError(res, {
+                    message: "更新失敗，此 ID 資料不存在，或未填寫更新欄位",
+                    error: error
+                });
             }
         });
     };
