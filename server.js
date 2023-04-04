@@ -104,6 +104,32 @@ const requestListener = async (req, res) => {
         } finally {
             res.end();
         };
+    } else if ((req.url.startsWith('/posts')) && (req.method === 'PATCH')) {
+        /* 更新單筆資料 */
+        req.on("end", async () => {
+            /* HTTP 請求的所有資料都已經被接收完畢 */
+            try {
+                const data = JSON.parse(body);
+                const id = req.url.split('/').pop();
+                // TODO 更新資料防呆
+                const updatePost = await Post.findByIdAndUpdate(id, data);
+                res.writeHead(200, headers);
+                res.write(JSON.stringify({
+                    "status": "success",
+                    "data": updatePost
+                }));
+            } catch (error) {
+                console.error(error);
+                res.writeHead(400, headers);
+                res.write(JSON.stringify({
+                    "status": "failed",
+                    "message": "更新失敗，此 ID 資料不存在，或未填寫更新欄位",
+                    "error": error
+                }));
+            } finally {
+                res.end();
+            }
+        });
     };
 };
 
