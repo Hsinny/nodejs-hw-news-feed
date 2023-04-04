@@ -70,6 +70,7 @@ const requestListener = async (req, res) => {
                 res.end();
             }
         });
+
     } else if ((req.url === "/posts") && (req.method === 'DELETE')) {
         /* 刪除所有貼文 */
         const posts = await Post.deleteMany({});
@@ -79,7 +80,31 @@ const requestListener = async (req, res) => {
             "data": posts
         }));
         res.end();
-    }
+
+    } else if ((req.url.startsWith('/posts')) && (req.method === 'DELETE')) {
+        console.log('req.url', req.url);
+        /* 刪除單筆貼文 /posts/{id} */
+        try {
+            const id = req.url.split('/').pop();
+            const deletePost = await Post.findByIdAndDelete(id); 
+
+            res.writeHead(200, headers);
+            res.write(JSON.stringify({
+            "status": "success",
+            "data": deletePost
+        }));
+        } catch (error) {
+            console.error(error);
+            res.writeHead(400, headers);
+            res.write(JSON.stringify({
+                "status": "failed",
+                "message": "刪除失敗，此 ID 資料不存在",
+                "error": error
+            }));
+        } finally {
+            res.end();
+        };
+    };
 };
 
 const server = http.createServer(requestListener);
