@@ -70,6 +70,15 @@ const requestListener = async (req, res) => {
                 res.end();
             }
         });
+    } else if ((req.url === "/posts") && (req.method === 'DELETE')) {
+        /* 刪除所有貼文 */
+        const posts = await Post.deleteMany({});
+        res.writeHead(200, headers);
+        res.write(JSON.stringify({
+            "status": "success",
+            "data": posts
+        }));
+        res.end();
     }
 };
 
