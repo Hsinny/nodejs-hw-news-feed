@@ -15,8 +15,14 @@ mongoose.connect("mongodb://localhost:27017/posts")
     });
 
 const requestListener = async (req, res) => {
+    let body = "";
+    
+    /* 監聽收到的 HTTP 請求資料 */
+    req.on("data", chunk => {
+        body += chunk; // chunk: 接收到的請求資料片段
+    });
 
-    // 取得所有貼文
+    /* 取得所有貼文 */
     if ((req.url === "/posts") && (req.method === 'GET')) {
         const posts = await Post.find();
         res.writeHead(200, headers);
@@ -25,6 +31,45 @@ const requestListener = async (req, res) => {
             posts
         }));
         res.end();
+
+    } else if ((req.url === "/posts") && (req.method === 'POST')) {
+        /* 新增貼文 */
+        req.on("end", async () => {
+            /* 當 HTTP 請求的所有資料都已經被接收完畢 */
+            try {
+                const data = JSON.parse(body);
+               
+                if ((data.owner !== undefined) && (data.content !== undefined)) {
+                    const newPost = await Post.create({
+                        avatar: data.avatar,
+                        owner: data.owner,
+                        content: data.content,
+                        image: data.image,
+                    });
+                    res.writeHead(200, headers);
+                    res.write(JSON.stringify({
+                        "status": "success",
+                        post: newPost
+                    }));
+                } else {
+                    res.writeHead(400, headers);
+                    res.write(JSON.stringify({
+                        "status": "failed",
+                        "message": "用戶名稱或貼文內容未填寫",
+                    }));
+                }
+            } catch (error) {
+                console.error(error);
+                res.writeHead(400, headers);
+                res.write(JSON.stringify({
+                    "status": "failed",
+                    "message": "新增失敗",
+                    "error": error
+                }));
+            } finally {
+                res.end();
+            }
+        });
     }
 };
 
