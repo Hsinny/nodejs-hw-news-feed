@@ -45,4 +45,43 @@ app.delete("/posts/:postId", async (req, res) => {
     };
 });
 
+/* 新增貼文 */
+app.post("/posts", async (req, res) => {
+    const data = req.body;
+    try {
+        const newPost = await Post.create({
+            avatar: data.avatar,
+            owner: data.owner, 
+            content: data.content, 
+            image: data.image
+        });
+        handleSuccess(res, { post: newPost });
+    } catch (error) {
+        handleError(res, { 
+            message: "用戶名稱或貼文內容未填寫",
+            error: error
+        });
+    };
+});
+
+/* 更新單筆貼文 */
+app.put("/posts/:postId", async (req, res) => {
+    const postId = req.params.postId;
+    const data = req.body;
+    try {
+        const updatePost = await Post.findByIdAndUpdate(postId, {
+            avatar: data.avatar,
+            owner: data.owner, 
+            content: data.content, 
+            image: data.image
+        });
+        handleSuccess(res, { post: updatePost }); // 返回的是更新前的值 [TODO]吐更新後的值
+    } catch (error) {
+        handleError(res, { 
+            message: "更新失敗，此 ID 資料不存在，或未填寫更新欄位",
+            error: error
+        });
+    };
+});
+
 app.listen(process.env.PORT_WEB_SERVER);
