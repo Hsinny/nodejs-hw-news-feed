@@ -16,6 +16,9 @@ mongoose.connect("mongodb://localhost:27017/posts")
         console.error(error);
     });
 
+/* 執行 middleware 函式 (攔截 HTTP 請求後執行特定處理) */
+app.use(express.json()); // 解析 HTTP 請求中的 body，並將解析結果作為 req.body 物件附加到請求物件上
+
 /* 取得所有貼文 */
 app.get("/posts", async (req, res) => {
     const posts = await Post.find();
