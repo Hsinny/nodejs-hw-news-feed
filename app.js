@@ -2,6 +2,9 @@ const dotenv = require("dotenv");
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const Post = require("./models/Post");
+const handleError = require("./helper/handleError");
+const handleSuccess = require("./helper/handleSuccess");
 
 dotenv.config({ path: "./.env.local" });
 
@@ -12,5 +15,31 @@ mongoose.connect("mongodb://localhost:27017/posts")
     .catch((error) => {
         console.error(error);
     });
+
+/* 取得所有貼文 */
+app.get("/posts", async (req, res) => {
+    const posts = await Post.find();
+    handleSuccess(res, { posts: posts });
+});
+
+/* 刪除所有貼文 */
+app.delete("/posts", async (req, res) => {
+   const posts =  await Post.deleteMany({});
+   handleSuccess(res, { posts: posts });
+});
+
+/* 刪除單筆貼文 /posts/{id} */
+app.delete("/posts/:postId", async (req, res) => {
+    const postId = req.params.postId;
+    try {
+        const deletePost = await Post.findByIdAndDelete(postId);
+        handleSuccess(res, { post: deletePost });
+    } catch (error) {
+        handleError(res, {
+            message:  "刪除失敗，此 ID 資料不存在",
+            error: error
+        });
+    };
+});
 
 app.listen(process.env.PORT_WEB_SERVER);
