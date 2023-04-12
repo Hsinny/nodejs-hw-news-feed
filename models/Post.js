@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const postSchema= new mongoose.Schema({
     avatar: {
         type: String,
+        default: ''
     },
     owner: {
         type: String,
@@ -14,13 +15,15 @@ const postSchema= new mongoose.Schema({
     },
     image: {
         type: String,
+        default: ''
     },
     likes: {
         type: Number,
         default: 0
     },
     comments: {
-        type: Array
+        type: Array,
+        default: []
     },
 }, {
     versionKey: false,
