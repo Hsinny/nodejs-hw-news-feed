@@ -2,12 +2,16 @@
 var express = require('express');
 var router = express.Router();
 const Post = require("../models/Post");
+const User = require("../models/User"); // 必須引入 ref 的 Model
 const handleError = require("../helper/handleError");
 const handleSuccess = require("../helper/handleSuccess");
 
 /* 取得所有貼文 */
 router.get("/", async (req, res, next) => {
-    const posts = await Post.find();
+    const posts = await Post.find().populate({
+        path: "owner", // ref 的 Model 名稱
+        select: "name avatar", // 指定要取出的欄位
+    });
     handleSuccess(res, { posts: posts });
 });
 
@@ -37,7 +41,7 @@ router.post("/", async (req, res) => {
     try {
         const newPost = await Post.create({
             avatar: data.avatar,
-            owner: data.owner, 
+            owner: data.owner, // 要給 User ID
             content: data.content, 
             image: data.image
         });
