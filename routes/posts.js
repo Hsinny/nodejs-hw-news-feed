@@ -61,7 +61,6 @@ router.put("/:postId", async (req, res) => {
     try {
         const updatePost = await Post.findByIdAndUpdate(postId, {
             avatar: data.avatar,
-            owner: data.owner, 
             content: data.content, 
             image: data.image
         });
