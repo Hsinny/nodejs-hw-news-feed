@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
             avatar: data.avatar,
             owner: data.owner, // 要給 User ID
             content: data.content, 
-            image: data.image
+            image: 'https://picsum.photos/470/160', // data.image
         });
         handleSuccess(res, { post: newPost });
     } catch (error) {
