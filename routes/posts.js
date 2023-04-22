@@ -9,10 +9,11 @@ const handleSuccess = require("../helper/handleSuccess");
 /* 取得所有貼文 */
 router.get("/", async (req, res, next) => {
     const q = req.query.q !== undefined ? { "content": new RegExp(req.query.q)} : {}; // 搜尋關鍵字
+    const timeSort = req.query.timeSort == "asc" ? "createdAt" : "-createdAt"; // 依照時間排序 1:升冪(小至大) -1:降冪(大至小)
     const posts = await Post.find(q).populate({
         path: "owner", // ref 的 Model 名稱
         select: "name avatar", // 指定要取出的欄位
-    });
+    }).sort(timeSort);
     handleSuccess(res, { posts: posts });
 });
 
